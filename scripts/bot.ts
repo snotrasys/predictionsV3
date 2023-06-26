@@ -58,6 +58,7 @@ const executeRound = async () => {
     return tx;
 };
 
+const time = 60
 async function main2() {    
     const tx: any = await genesisStartRound();
     console.log(tx.hash,"genesisStartRound");
@@ -71,8 +72,8 @@ async function main2() {
                     
                     const tx3:any = await executeRound();
                     console.log(tx3.hash,"executeRound");
-                }, 1000 * 66);
-        }, 1000 * 66);
+                }, 1000 * time +5);
+        }, 1000 * time +5);
 }
 async function main() {
     const isPaused = await contract_.paused();
