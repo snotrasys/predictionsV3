@@ -26,7 +26,7 @@ const bscMainnet: NetworkUserConfig = {
 };
 
 const config = {
-  defaultNetwork: "testnet",
+  defaultNetwork: "mainnet",
   networks: {
     hardhat: {},
     testnet: bscTestnet,

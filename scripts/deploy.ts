@@ -4,9 +4,10 @@ import config from "../config";
 
 const main = async () => {
   // Get network data from Hardhat config (see hardhat.config.ts).
-  const networkName = "testnet";
+  const networkName = "mainnet";
 
   // Check if the network is supported.
+  //@ts-ignore
   if (networkName === "testnet" || networkName === "mainnet") {
     console.log(`Deploying to ${networkName} network...`);
 
@@ -26,22 +27,8 @@ const main = async () => {
 
     // Deploy contracts.
     const PancakePrediction = await ethers.getContractFactory("PancakePredictionV3");
-    // const contract = await PancakePrediction.deploy(
-    //   config.Address.Token[networkName],
-    //   config.Address.Oracle[networkName],
-    //   config.Address.Admin[networkName],
-    //   config.Address.Operator[networkName],
-    //   config.Block.Interval[networkName],
-    //   config.Block.Buffer[networkName],
-    //   parseEther(config.BetAmount[networkName].toString()).toString(),
-    //   config.OracleUpdateAllowance[networkName],
-    //   config.Treasury[networkName]
-    // );
-
-    // Wait for the contract to be deployed before exiting the script.
-    // await contract.deployed();
-    // console.log(`Deployed to ${contract.address}`);
-    console.log( config.Address.Token[networkName],
+    const contract = await PancakePrediction.deploy(
+      config.Address.Token[networkName],
       config.Address.Oracle[networkName],
       config.Address.Admin[networkName],
       config.Address.Operator[networkName],
@@ -49,7 +36,21 @@ const main = async () => {
       config.Block.Buffer[networkName],
       parseEther(config.BetAmount[networkName].toString()).toString(),
       config.OracleUpdateAllowance[networkName],
-      config.Treasury[networkName]);
+      config.Treasury[networkName]
+    );
+
+    // Wait for the contract to be deployed before exiting the script.
+    await contract.deployed();
+    console.log(`Deployed to ${contract.address}`);
+    // console.log( config.Address.Token[networkName],
+    //   config.Address.Oracle[networkName],
+    //   config.Address.Admin[networkName],
+    //   config.Address.Operator[networkName],
+    //   config.Block.Interval[networkName],
+    //   config.Block.Buffer[networkName],
+    //   parseEther(config.BetAmount[networkName].toString()).toString(),
+    //   config.OracleUpdateAllowance[networkName],
+    //   config.Treasury[networkName]);
     
   } else {
     console.log(`Deploying to ${networkName} network is not supported...`);
