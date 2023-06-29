@@ -5,5 +5,5 @@ RUN npm install -g typescript
 RUN npm install -g ts-node
 WORKDIR /app
 COPY . /app
-
+RUN npm install
 CMD ["npm","start"]
