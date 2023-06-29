@@ -76,7 +76,7 @@ const genesisLockRound2 = async () => {
         await executeRound2();
     }, 1000 * time +5);
 }
-const time = 310
+const time = 920
 async function main2() {    
     const tx: any = await genesisStartRound();
     console.log(tx.hash,"genesisStartRound");
