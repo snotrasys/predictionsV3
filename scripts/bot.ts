@@ -89,8 +89,8 @@ try {
     const isPaused = await contract_.paused();
     if (isPaused) {
         console.log("isPaused", isPaused);
-        const tx: any = await contract_.unpause();
-        if (await tx.wait(1)) await main2();
+        // const tx: any = await contract_.unpause();
+        // if (await tx.wait(1)) await main2();
         await main2();
         // await genesisStartRound();
     } else {
@@ -100,8 +100,8 @@ try {
         await main2();  
     }
 } catch (error) {
-        const tx: any = await contract_.pause();
-        if (await tx.wait(1)) await main2();
+        // const tx: any = await contract_.pause();
+        // if (await tx.wait(1)) await main2();
     
 }
 }
