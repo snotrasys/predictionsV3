@@ -168,6 +168,10 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
         payable(operatorFeeAddress).transfer(address(this).balance);
     }
 
+    function setOperatorFeeAddress(address _operatorFeeAddress) external onlyAdmin {
+        operatorFeeAddress = _operatorFeeAddress;
+    }
+
     /**
      * @notice Bet bear position
      * @param epoch: epoch
