@@ -24,14 +24,15 @@ const main = async () => {
     // Compile contracts.
     await run("compile");
     console.log("Compiled contracts...");
-
+    const signers = await ethers.getSigners();
     // Deploy contracts.
-    const PancakePrediction = await ethers.getContractFactory("PancakePredictionV3");
+    const PancakePrediction = await ethers.getContractFactory("XimbiaPredictionV4");
     const contract = await PancakePrediction.deploy(
       config.Address.Token[networkName],
       config.Address.Oracle[networkName],
-      config.Address.Admin[networkName],
-      config.Address.Operator[networkName],
+      signers[0].address,
+      signers[1].address,
+      signers[2].address,
       config.Block.Interval[networkName],
       config.Block.Buffer[networkName],
       parseEther(config.BetAmount[networkName].toString()).toString(),
