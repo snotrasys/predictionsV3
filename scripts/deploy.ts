@@ -32,7 +32,7 @@ const main = async () => {
       config.Address.Oracle[networkName],
       signers[0].address,
       signers[1].address,
-      signers[2].address,
+      signers[1].address,
       config.Block.Interval[networkName],
       config.Block.Buffer[networkName],
       parseEther(config.BetAmount[networkName].toString()).toString(),

@@ -23,11 +23,11 @@ export default {
   },
   Block: {
     Interval: {
-      mainnet: 900,
+      mainnet: 300,
       testnet: 300,
     },
     Buffer: {
-      mainnet: 800,
+      mainnet: 299,
       testnet: 15,
     },
   },
