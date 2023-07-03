@@ -9,7 +9,7 @@ const main = async () => {
   // Get network data from Hardhat config (see hardhat.config.ts).
   const signer = await ethers.getSigners();
   const lock = await ethers.getContractAt("PancakePredictionV3", "0xDF7D0bA5301fA249856ea99240E68A984f14ccB4");
-
+  0x3bdeECae844b96A133F98e54e36eB85414ffe5c9
   // await lock.connect(signer[1]).genesisStartRound()
   // await lock.connect(signer[1]).genesisLockRound()
   // await lock.connect(signer[0]).unpause()
