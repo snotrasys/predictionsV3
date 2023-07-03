@@ -172,7 +172,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
      * @notice Bet bear position
      * @param epoch: epoch
      */
-    function betBear(uint256 epoch, uint256 _amount) external whenNotPaused nonReentrant notContract {
+    function betBear(uint256 epoch, uint256 _amount) external payable whenNotPaused nonReentrant notContract {
         require(epoch == currentEpoch, "Bet is too early/late");
         require(_bettable(epoch), "Round not bettable");
         require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
@@ -199,7 +199,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
      * @notice Bet bull position
      * @param epoch: epoch
      */
-    function betBull(uint256 epoch, uint256 _amount) external whenNotPaused nonReentrant notContract {
+    function betBull(uint256 epoch, uint256 _amount) external payable whenNotPaused nonReentrant notContract {
         require(epoch == currentEpoch, "Bet is too early/late");
         require(_bettable(epoch), "Round not bettable");
         require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
