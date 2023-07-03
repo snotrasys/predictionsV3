@@ -24,6 +24,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
 
     address public adminAddress; // address of the admin
     address public operatorAddress; // address of the operator
+    address public operatorFeeAddress; // address of the operator fee
 
     uint256 public bufferSeconds; // number of seconds for valid execution of a prediction round
     uint256 public intervalSeconds; // interval in seconds between two prediction rounds
@@ -38,6 +39,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
     uint256 public oracleUpdateAllowance; // seconds
 
     uint256 public constant MAX_TREASURY_FEE = 1000; // 10%
+    uint public bnbFee = 0.0012 ether;
 
     mapping(uint256 => mapping(address => BetInfo)) public ledger;
     mapping(uint256 => Round) public rounds;
@@ -136,6 +138,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
         address _oracleAddress,
         address _adminAddress,
         address _operatorAddress,
+        address _operatorFeeAddress,
         uint256 _intervalSeconds,
         uint256 _bufferSeconds,
         uint256 _minBetAmount,
@@ -148,11 +151,21 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
         oracle = AggregatorV3Interface(_oracleAddress);
         adminAddress = _adminAddress;
         operatorAddress = _operatorAddress;
+        operatorFeeAddress = _operatorFeeAddress;
         intervalSeconds = _intervalSeconds;
         bufferSeconds = _bufferSeconds;
         minBetAmount = _minBetAmount;
         oracleUpdateAllowance = _oracleUpdateAllowance;
         treasuryFee = _treasuryFee;
+    }
+
+    function setBnbFee(uint _fee) external onlyAdmin {
+        bnbFee = _fee;
+    }
+
+    function sendToOperatorFeeAddress() internal {
+        require(msg.value >= bnbFee, "Not enough BNB to pay for fee");
+        payable(operatorFeeAddress).transfer(address(this).balance);
     }
 
     /**
@@ -164,6 +177,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
         require(_bettable(epoch), "Round not bettable");
         require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
+        sendToOperatorFeeAddress();
 
         token.safeTransferFrom(msg.sender, address(this), _amount);
         // Update round data
@@ -190,6 +204,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
         require(_bettable(epoch), "Round not bettable");
         require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
+        sendToOperatorFeeAddress();
 
         token.safeTransferFrom(msg.sender, address(this), _amount);
         // Update round data
