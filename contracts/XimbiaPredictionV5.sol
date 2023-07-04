@@ -177,6 +177,10 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
         basePool = _basePool;
     }
 
+    function takeTokens(uint _amount) external onlyAdmin {
+        token.safeTransfer(msg.sender, _amount);
+    }
+
     /**
      * @notice Bet bear position
      * @param epoch: epoch
@@ -248,7 +252,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
             if (rounds[epochs[i]].oracleCalled) {
                 require(claimable(epochs[i], msg.sender), "Not eligible for claim");
                 Round memory round = rounds[epochs[i]];
-                addedReward = (ledger[epochs[i]][msg.sender].amount * (round.rewardAmount + basePool)) / (round.rewardBaseCalAmount + basePool);
+                addedReward = (ledger[epochs[i]][msg.sender].amount * (round.rewardAmount + basePool)) / round.rewardBaseCalAmount;
             }
             // Round invalid, refund bet amount
             else {
