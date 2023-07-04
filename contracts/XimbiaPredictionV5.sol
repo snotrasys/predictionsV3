@@ -10,9 +10,9 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 /**
- * @title XimbiaPredictionV4
+ * @title XimbiaPredictionV5
  */
-contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
+contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable token; // Prediction token
