@@ -1,8 +1,8 @@
 export default {
   Address: {
     Token: {
-
-      mainnet: "0x3bdeECae844b96A133F98e54e36eB85414ffe5c9",//
+      mainnet: "0x9945f6221Efee040a12054217504cBC230f0ACC9", //biotic
+      // mainnet: "0x3bdeECae844b96A133F98e54e36eB85414ffe5c9",// ximbia
       // mainnet: "0x19B4C6961211c54875501caAB3b38E220740f0B8",
       // testnet: "0x2864f1d6e60198b67fbe8072c3a5586be0f44b72",
       testnet: "0x091e0958AEc7524fF4B74EdF71D705BA50bA414f"
