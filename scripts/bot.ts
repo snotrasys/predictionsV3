@@ -12,7 +12,7 @@ const abi = [
 ];
 // const address = "0x263c746E1e61f398a36E684C3aAF5405c1616F61";
 // const address = "0x5d5e336735870f6d4CFc1a6d091be06f3868D8e0" //ximbia
-const address = "0xceE39d439F898E3d7f7D134B15EfE7b83Ad4d664" //biotic
+const address = "0x01e29EFc282b1859b6bff5dDb137D75BcD7FC9f3" //biotic
 const provider = new providers.JsonRpcProvider(
     // "https://bsc-testnet.publicnode.com"
     "https://rpc.bsc.magic-api.net"

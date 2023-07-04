@@ -8,7 +8,8 @@ export default {
       testnet: "0x091e0958AEc7524fF4B74EdF71D705BA50bA414f"
     },
     Oracle: {
-      mainnet: "0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf",//BTC/USDT
+      mainnet: "0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e", //ETH/USDT
+      // mainnet: "0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf",//BTC/USDT
       testnet: "0x81faeDDfeBc2F8Ac524327d70Cf913001732224C",
     },
     Admin: {
