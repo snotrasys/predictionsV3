@@ -248,7 +248,7 @@ contract XimbiaPredictionV4 is Ownable, Pausable, ReentrancyGuard {
             if (rounds[epochs[i]].oracleCalled) {
                 require(claimable(epochs[i], msg.sender), "Not eligible for claim");
                 Round memory round = rounds[epochs[i]];
-                addedReward = (ledger[epochs[i]][msg.sender].amount * (round.rewardAmount + basePool)) / (round.rewardBaseCalAmount + basePool) ;
+                addedReward = (ledger[epochs[i]][msg.sender].amount * (round.rewardAmount + basePool)) / (round.rewardBaseCalAmount + basePool);
             }
             // Round invalid, refund bet amount
             else {
