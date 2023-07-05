@@ -90,7 +90,7 @@ async function main() {
 try {
     const isPaused = await contract_.paused();
     if (isPaused) {
-        console.log("isPaused", isPaused);
+        console.log("isPaused1", isPaused);
         const tx: any = await contract_.unpause();
         if (await tx.wait(1)) await main2();
         // await main2();
