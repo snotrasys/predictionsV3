@@ -546,7 +546,9 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         uint256 rewardBaseCalAmount;
         uint256 treasuryAmt;
         uint256 rewardAmount;
-
+        round.totalAmount += basePool * 2;
+        round.bullAmount += basePool;
+        round.bearAmount += basePool;
         // Bull wins
         if (round.closePrice > round.lockPrice) {
             rewardBaseCalAmount = round.bullAmount;
