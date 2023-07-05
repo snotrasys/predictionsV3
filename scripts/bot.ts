@@ -102,6 +102,8 @@ try {
 } catch (error) {
         // const tx: any = await contract_.pause();
         // if (await tx.wait(1)) await main2();
+        console.log(error);
+        
     
 }
 }
