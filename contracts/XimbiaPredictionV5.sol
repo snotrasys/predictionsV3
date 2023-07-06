@@ -545,10 +545,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         Round storage round = rounds[epoch];
         uint256 rewardBaseCalAmount;
         uint256 treasuryAmt;
-        uint256 rewardAmount;
-        round.totalAmount += basePool * 2;
-        round.bullAmount += basePool;
-        round.bearAmount += basePool;
+
         // Bull wins
         if (round.closePrice > round.lockPrice) {
             rewardBaseCalAmount = round.bullAmount;
@@ -653,6 +650,11 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         round.closeTimestamp = block.timestamp + (2 * intervalSeconds);
         round.epoch = epoch;
         round.totalAmount = 0;
+
+        // update default invest
+        round.totalAmount += basePool * 2;
+        round.bullAmount += basePool;
+        round.bearAmount += basePool;
 
         emit StartRound(epoch);
     }
