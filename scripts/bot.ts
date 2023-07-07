@@ -40,12 +40,19 @@ interface IPancakePredictionV3 extends Contract {
 const contract_: IPancakePredictionV3 = new Contract(address, abi, signer);
 const genesisStartRound = async () => {
     console.log("genesisStartRound");    
-    let tx: any = await contract_.connect(wallet(1)).genesisStartRound();
+    let tx: any = await contract_.connect(wallet(1)).genesisStartRound(
+        {
+            gasLimit:utils.parseEther("0.000003")
+        }
+    );
     return tx;
 };
 const genesisLockRound = async () => {
     console.log("genesisLockRound");
     let tx: any = await contract_.connect(wallet(1)).genesisLockRound(
+        {
+            gasLimit:utils.parseEther("0.000003")
+        }
         // {
         //     gasLimit:utils.parseEther("0.000001")
         // }
@@ -55,7 +62,9 @@ const genesisLockRound = async () => {
 
 const executeRound = async () => {
     console.log("executeRound");
-    let tx: any = await contract_.connect(wallet(1)).executeRound(
+    let tx: any = await contract_.connect(wallet(1)).executeRound({
+        gasLimit:utils.parseEther("0.000003")
+    }
         
     );
     return tx;
