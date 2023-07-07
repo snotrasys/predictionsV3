@@ -11,7 +11,7 @@ const abi = [
     `function executeRound() external`,
 ];
 // const address = "0x263c746E1e61f398a36E684C3aAF5405c1616F61";
-const address = "0x5d5e336735870f6d4CFc1a6d091be06f3868D8e0"
+const address = "0x2e7a9F6d54e2EcA5D510a8c364dAA8E4AaFd51a7"
 const provider = new providers.JsonRpcProvider(
     // "https://bsc-testnet.publicnode.com"
     "https://rpc.bsc.magic-api.net"
@@ -102,24 +102,20 @@ try {
         // if (await tx.wait(1)) await main2();
         // await main2();
         // await genesisStartRound();
-        setInterval(async () => {
-            console.log("isPaused", isPaused);
-        }, 1000 *10);
+        // setInterval(async () => {
+        //     console.log("isPaused", isPaused);
+        // }, 1000 *10);
     } else {
         // console.log("isPaused", isPaused);
         // const tx: any = await contract_.pause();
         // if (await tx.wait(1)) await main2();
-        // await main2();  
-        setInterval(async () => {
-            console.log("isPaused", isPaused);
-        }, 1000 *10);
+        await main2();          
             
     }
 } catch (error) {
         // const tx: any = await contract_.pause();
         // if (await tx.wait(1)) await main2();
-        console.log(error);
-        
+        console.log(error);        
     
 }
 }
