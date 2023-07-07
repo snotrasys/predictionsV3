@@ -96,6 +96,13 @@ async function main2() {
 async function main() {
 try {
     const isPaused = await contract_.paused();
+    const genesisStartOnce = await contract_.genesisStartOnce();
+    if(genesisStartOnce)
+    {
+        console.log("genesisStartOnce", genesisStartOnce);
+        return;
+        
+    }
     if (isPaused) {
         console.log("isPaused", isPaused);
         // const tx: any = await contract_.unpause();
