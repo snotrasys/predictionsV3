@@ -32,7 +32,7 @@ export default {
     },
   },
   Treasury: {
-    mainnet: 300, // 3%
+    mainnet: 500, // 3%
     testnet: 1000, // 10%
   },
   BetAmount: {
