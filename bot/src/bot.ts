@@ -8,6 +8,7 @@ const abi = [
     `function pause() external`,
     `function unpause() external`,
     `function paused() view external returns(bool)`,
+    `function genesisStartOnce() view external returns(bool)`,    
     `function executeRound() external`,
 ];
 // const address = "0x263c746E1e61f398a36E684C3aAF5405c1616F61";
