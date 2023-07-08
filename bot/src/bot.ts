@@ -12,8 +12,8 @@ const abi = [
     `function executeRound() external`,
 ];
 // const address = "0x263c746E1e61f398a36E684C3aAF5405c1616F61";
-const address = "0x5d5e336735870f6d4CFc1a6d091be06f3868D8e0" //old
-// const address = "0x95095880120DACEaC0dEb75574DBE8397A3cCB03" //new 
+// const address = "0x5d5e336735870f6d4CFc1a6d091be06f3868D8e0" //old
+const address = "0x95095880120DACEaC0dEb75574DBE8397A3cCB03" //new 
 const provider = new providers.JsonRpcProvider(
     // "https://bsc-testnet.publicnode.com"
     "https://rpc.bsc.magic-api.net"
