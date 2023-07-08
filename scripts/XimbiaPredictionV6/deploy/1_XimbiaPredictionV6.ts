@@ -1,5 +1,5 @@
 import { ethers, upgrades,run } from "hardhat";
-import config from "../../config";
+import config from "../../../config";
 import { parseEther } from "ethers/lib/utils";
 async function main() {
   const miner ="0xfdf5F5674445A53827F591a420a9D6202a5eCA4b"
@@ -42,6 +42,9 @@ async function main() {
   await instance.deployed();
   
   console.log("ContractHandler deployed to:", instance.address);
+} else {
+  console.log(`Deploying to ${networkName} network is not supported...`);
+}
 }
 
 // We recommend this pattern to be able to use async/await everywhere
