@@ -6,7 +6,7 @@ pragma abicoder v2;
 // import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 // import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -25,7 +25,6 @@ contract XimbiaPredictionV6 is
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
 {
-    using SafeERC20 for IERC20;
     struct User {
         address user;
         uint id;
@@ -43,9 +42,8 @@ contract XimbiaPredictionV6 is
     bool public genesisLockOnce = false;
     bool public genesisStartOnce = false;
 
-    address public adminAddress; // address of the admin
-    address public operatorAddress; // address of the operator
-    address public operatorFeeAddress; // address of the operator fee
+    address internal adminAddress; // address of the admin
+    address internal operatorAddress; // address of the operator
 
     uint256 public bufferSeconds; // number of seconds for valid execution of a prediction round
     uint256 public intervalSeconds; // interval in seconds between two prediction rounds
@@ -109,56 +107,49 @@ contract XimbiaPredictionV6 is
         uint256 amount
     );
     event Claim(address indexed sender, uint256 indexed epoch, uint256 amount);
-    event EndRound(
-        uint256 indexed epoch,
-        uint256 indexed roundId,
-        int256 price
-    );
-    event LockRound(
-        uint256 indexed epoch,
-        uint256 indexed roundId,
-        int256 price
-    );
+    // event EndRound(
+    //     uint256 indexed epoch,
+    //     uint256 indexed roundId,
+    //     int256 price
+    // );
+    // event LockRound(
+    //     uint256 indexed epoch,
+    //     uint256 indexed roundId,
+    //     int256 price
+    // );
 
-    event NewAdminAddress(address admin);
-    event NewBufferAndIntervalSeconds(
-        uint256 bufferSeconds,
-        uint256 intervalSeconds
-    );
-    event NewMinBetAmount(uint256 indexed epoch, uint256 minBetAmount);
-    event NewTreasuryFee(uint256 indexed epoch, uint256 treasuryFee);
-    event NewOperatorAddress(address operator);
-    event NewOracle(address oracle);
-    event NewOracleUpdateAllowance(uint256 oracleUpdateAllowance);
+    // event NewBufferAndIntervalSeconds(
+    //     uint256 bufferSeconds,
+    //     uint256 intervalSeconds
+    // );
+    // event NewMinBetAmount(uint256 indexed epoch, uint256 minBetAmount);
+    // event NewTreasuryFee(uint256 indexed epoch, uint256 treasuryFee);
+    // event NewOperatorAddress(address operator);
+    // event NewOracle(address oracle);
+    // event NewOracleUpdateAllowance(uint256 oracleUpdateAllowance);
 
     event Pause(uint256 indexed epoch);
-    event RewardsCalculated(
-        uint256 indexed epoch,
-        uint256 rewardBaseCalAmount,
-        uint256 rewardAmount,
-        uint256 treasuryAmount
-    );
+    // event RewardsCalculated(
+    //     uint256 indexed epoch,
+    //     uint256 rewardBaseCalAmount,
+    //     uint256 rewardAmount,
+    //     uint256 treasuryAmount
+    // );
 
-    event StartRound(uint256 indexed epoch);
-    event TokenRecovery(address indexed token, uint256 amount);
-    event TreasuryClaim(uint256 amount);
+    // event StartRound(uint256 indexed epoch);
+    // event TreasuryClaim(uint256 amount);
     event Unpause(uint256 indexed epoch);
 
-    modifier onlyAdmin() {
-        require(msg.sender == adminAddress, "Not admin");
-        _;
-    }
+    // modifier onlyAdminOrOperator() {
+    //     require(msg.sender == adminAddress, "Not admin");
+    //     _;
+    // }
 
     modifier onlyAdminOrOperator() {
         require(
             msg.sender == adminAddress || msg.sender == operatorAddress,
             "Not operator/admin"
         );
-        _;
-    }
-
-    modifier onlyOperator() {
-        require(msg.sender == operatorAddress, "Not operator");
         _;
     }
 
@@ -206,27 +197,13 @@ contract XimbiaPredictionV6 is
     //     treasuryFee = _treasuryFee;
     // }
 
-    function setBnbFee(uint _fee) external onlyAdmin {
+    function setBnbFeeAndBasePool(uint _fee, uint _basePool) external onlyAdminOrOperator {
         bnbFee = _fee;
-    }
-
-    function sendToOperatorFeeAddress() internal {
-        require(msg.value >= bnbFee, "Not enough BNB to pay for fee");
-        payable(operatorFeeAddress).transfer(address(this).balance);
-    }
-
-    function setOperatorFeeAddress(
-        address _operatorFeeAddress
-    ) external onlyAdmin {
-        operatorFeeAddress = _operatorFeeAddress;
-    }
-
-    function setBasePool(uint _basePool) external onlyAdmin {
         basePool = _basePool;
     }
 
-    function takeTokens(uint _amount) external onlyAdmin {
-        token.safeTransfer(msg.sender, _amount);
+    function getOwnersAddress() external view returns (address _adminAddress, address _operatorAddress) {
+        return (adminAddress, operatorAddress);
     }
 
     function regisiterUser(address _user, uint _amount, bool _isBull) internal {
@@ -264,9 +241,10 @@ contract XimbiaPredictionV6 is
             "Can only bet once per round"
         );
         regisiterUser(msg.sender, _amount, false);
-        sendToOperatorFeeAddress();
+        require(msg.value >= bnbFee, "Not enough BNB to pay for fee");
+        payable(operatorAddress).transfer(address(this).balance);
 
-        token.safeTransferFrom(msg.sender, address(this), _amount);
+        token.transferFrom(msg.sender, address(this), _amount);
         // Update round data
         uint256 amount = _amount;
         Round storage round = rounds[epoch];
@@ -301,9 +279,10 @@ contract XimbiaPredictionV6 is
             "Can only bet once per round"
         );
         regisiterUser(msg.sender, _amount, true);
-        sendToOperatorFeeAddress();
+        require(msg.value >= bnbFee, "Not enough BNB to pay for fee");
+        payable(operatorAddress).transfer(address(this).balance);
 
-        token.safeTransferFrom(msg.sender, address(this), _amount);
+        token.transferFrom(msg.sender, address(this), _amount);
         // Update round data
         uint256 amount = _amount;
         Round storage round = rounds[epoch];
@@ -374,7 +353,7 @@ contract XimbiaPredictionV6 is
         }
 
         if (reward > 0) {
-            token.safeTransfer(msg.sender, reward);
+            token.transfer(msg.sender, reward);
         }
     }
 
@@ -382,7 +361,7 @@ contract XimbiaPredictionV6 is
      * @notice Start the next round n, lock price for round n-1, end round n-2
      * @dev Callable by operator
      */
-    function executeRound() external whenNotPaused onlyOperator {
+    function executeRound() external whenNotPaused onlyAdminOrOperator {
         require(
             genesisStartOnce && genesisLockOnce,
             "Can only run after genesisStartRound and genesisLockRound is triggered"
@@ -406,7 +385,7 @@ contract XimbiaPredictionV6 is
      * @notice Lock genesis round
      * @dev Callable by operator
      */
-    function genesisLockRound() external whenNotPaused onlyOperator {
+    function genesisLockRound() external whenNotPaused onlyAdminOrOperator {
         require(
             genesisStartOnce,
             "Can only run after genesisStartRound is triggered"
@@ -428,7 +407,7 @@ contract XimbiaPredictionV6 is
      * @notice Start genesis round
      * @dev Callable by admin or operator
      */
-    function genesisStartRound() external whenNotPaused onlyOperator {
+    function genesisStartRound() external whenNotPaused onlyAdminOrOperator {
         require(!genesisStartOnce, "Can only run genesisStartRound once");
 
         currentEpoch = currentEpoch + 1;
@@ -450,11 +429,11 @@ contract XimbiaPredictionV6 is
      * @notice Claim all rewards in treasury
      * @dev Callable by admin
      */
-    function claimTreasury() external nonReentrant onlyAdmin {
+    function claimTreasury() external nonReentrant onlyAdminOrOperator {
         uint256 currentTreasuryAmount = treasuryAmount;
         treasuryAmount = 0;
-        token.safeTransfer(adminAddress, currentTreasuryAmount);
-        emit TreasuryClaim(currentTreasuryAmount);
+        token.transfer(adminAddress, currentTreasuryAmount);
+        // emit TreasuryClaim(currentTreasuryAmount);
     }
 
     /**
@@ -477,7 +456,7 @@ contract XimbiaPredictionV6 is
     function setBufferAndIntervalSeconds(
         uint256 _bufferSeconds,
         uint256 _intervalSeconds
-    ) external whenPaused onlyAdmin {
+    ) external whenPaused onlyAdminOrOperator {
         require(
             _bufferSeconds < _intervalSeconds,
             "bufferSeconds must be inferior to intervalSeconds"
@@ -485,7 +464,7 @@ contract XimbiaPredictionV6 is
         bufferSeconds = _bufferSeconds;
         intervalSeconds = _intervalSeconds;
 
-        emit NewBufferAndIntervalSeconds(_bufferSeconds, _intervalSeconds);
+        // emit NewBufferAndIntervalSeconds(_bufferSeconds, _intervalSeconds);
     }
 
     /**
@@ -494,29 +473,29 @@ contract XimbiaPredictionV6 is
      */
     function setMinBetAmount(
         uint256 _minBetAmount
-    ) external whenPaused onlyAdmin {
+    ) external whenPaused onlyAdminOrOperator {
         require(_minBetAmount != 0, "Must be superior to 0");
         minBetAmount = _minBetAmount;
 
-        emit NewMinBetAmount(currentEpoch, minBetAmount);
+        // emit NewMinBetAmount(currentEpoch, minBetAmount);
     }
 
     /**
      * @notice Set operator address
      * @dev Callable by admin
      */
-    function setOperator(address _operatorAddress) external onlyAdmin {
+    function setOperator(address _operatorAddress) external onlyAdminOrOperator {
         require(_operatorAddress != address(0), "Cannot be zero address");
         operatorAddress = _operatorAddress;
 
-        emit NewOperatorAddress(_operatorAddress);
+        // emit NewOperatorAddress(_operatorAddress);
     }
 
     /**
      * @notice Set Oracle address
      * @dev Callable by admin
      */
-    function setOracle(address _oracle) external whenPaused onlyAdmin {
+    function setOracle(address _oracle) external whenPaused onlyAdminOrOperator {
         require(_oracle != address(0), "Cannot be zero address");
         oracleLatestRoundId = 0;
         oracle = AggregatorV3Interface(_oracle);
@@ -524,7 +503,7 @@ contract XimbiaPredictionV6 is
         // Dummy check to make sure the interface implements this function properly
         oracle.latestRoundData();
 
-        emit NewOracle(_oracle);
+        // emit NewOracle(_oracle);
     }
 
     /**
@@ -533,10 +512,10 @@ contract XimbiaPredictionV6 is
      */
     function setOracleUpdateAllowance(
         uint256 _oracleUpdateAllowance
-    ) external whenPaused onlyAdmin {
+    ) external whenPaused onlyAdminOrOperator {
         oracleUpdateAllowance = _oracleUpdateAllowance;
 
-        emit NewOracleUpdateAllowance(_oracleUpdateAllowance);
+        // emit NewOracleUpdateAllowance(_oracleUpdateAllowance);
     }
 
     /**
@@ -545,24 +524,15 @@ contract XimbiaPredictionV6 is
      */
     function setTreasuryFee(
         uint256 _treasuryFee
-    ) external whenPaused onlyAdmin {
+    ) external whenPaused onlyAdminOrOperator {
         require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
         treasuryFee = _treasuryFee;
 
-        emit NewTreasuryFee(currentEpoch, treasuryFee);
+        // emit NewTreasuryFee(currentEpoch, treasuryFee);
     }
 
-    /**
-     * @notice It allows the owner to recover tokens sent to the contract by mistake
-     * @param _token: token address
-     * @param _amount: token amount
-     * @dev Callable by owner
-     */
-    function recoverToken(address _token, uint256 _amount) external onlyOwner {
-        require(_token != address(token), "Cannot be prediction token address");
-        IERC20(_token).safeTransfer(address(msg.sender), _amount);
-
-        emit TokenRecovery(_token, _amount);
+    function takeTokens(uint _amount) external onlyAdminOrOperator {
+        token.transfer(msg.sender, _amount);
     }
 
     /**
@@ -572,8 +542,6 @@ contract XimbiaPredictionV6 is
     function setAdmin(address _adminAddress) external onlyOwner {
         require(_adminAddress != address(0), "Cannot be zero address");
         adminAddress = _adminAddress;
-
-        emit NewAdminAddress(_adminAddress);
     }
 
     /**
@@ -690,12 +658,12 @@ contract XimbiaPredictionV6 is
         // Add to treasury
         treasuryAmount += treasuryAmt;
 
-        emit RewardsCalculated(
-            epoch,
-            rewardBaseCalAmount,
-            rewardAmount,
-            treasuryAmt
-        );
+        // emit RewardsCalculated(
+        //     epoch,
+        //     rewardBaseCalAmount,
+        //     rewardAmount,
+        //     treasuryAmt
+        // );
     }
 
     /**
@@ -726,7 +694,7 @@ contract XimbiaPredictionV6 is
         round.closeOracleId = roundId;
         round.oracleCalled = true;
 
-        emit EndRound(epoch, roundId, round.closePrice);
+        // emit EndRound(epoch, roundId, round.closePrice);
     }
 
     /**
@@ -757,7 +725,7 @@ contract XimbiaPredictionV6 is
         round.lockPrice = price;
         round.lockOracleId = roundId;
 
-        emit LockRound(epoch, roundId, round.lockPrice);
+        // emit LockRound(epoch, roundId, round.lockPrice);
     }
 
     /**
@@ -799,7 +767,7 @@ contract XimbiaPredictionV6 is
         round.bullAmount += basePool;
         round.bearAmount += basePool;
 
-        emit StartRound(epoch);
+        // emit StartRound(epoch);
     }
 
     /**
@@ -846,8 +814,6 @@ contract XimbiaPredictionV6 is
         return size > 0;
     }
 
-    // bool public genesisLockOnce = false;
-    // bool public genesisStartOnce = false;
     function getPublicData()
         external
         view
@@ -887,20 +853,18 @@ contract XimbiaPredictionV6 is
         address _oracleAddress,
         address _adminAddress,
         address _operatorAddress,
-        address _operatorFeeAddress,
         uint256 _intervalSeconds,
         uint256 _bufferSeconds,
         uint256 _minBetAmount,
         uint256 _oracleUpdateAllowance,
         uint256 _treasuryFee
-    ) public initializer {
+    ) external initializer {
         require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
 
         token = _token;
         oracle = AggregatorV3Interface(_oracleAddress);
         adminAddress = _adminAddress;
         operatorAddress = _operatorAddress;
-        operatorFeeAddress = _operatorFeeAddress;
         intervalSeconds = _intervalSeconds;
         bufferSeconds = _bufferSeconds;
         minBetAmount = _minBetAmount;
