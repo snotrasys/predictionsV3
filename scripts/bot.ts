@@ -1,6 +1,7 @@
 import { constants, Contract, utils, providers, Wallet, } from "ethers";
 import dotenv from "dotenv";
 
+
 dotenv.config();
 const abi = [
     `function genesisLockRound() external`,

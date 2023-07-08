@@ -2,17 +2,29 @@
 pragma solidity ^0.8.0;
 pragma abicoder v2;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+// import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+// import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
+// import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+
 /**
  * @title XimbiaPredictionV5
  */
-contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
+contract XimbiaPredictionV6 is
+    Initializable,
+    OwnableUpgradeable,
+    PausableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable
+{
     using SafeERC20 for IERC20;
     struct User {
         address user;
@@ -24,7 +36,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         uint totalRefound;
     }
 
-    IERC20 public immutable token; // Prediction token
+    IERC20 public token; // Prediction token
 
     AggregatorV3Interface public oracle;
 
@@ -48,8 +60,8 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
     uint256 public oracleUpdateAllowance; // seconds
 
     uint256 public constant MAX_TREASURY_FEE = 1000; // 10%
-    uint public bnbFee = 0.0012 ether;
-    uint public basePool = 20 ether;
+    uint public bnbFee;
+    uint public basePool;
     uint public totalUsers;
 
     mapping(uint256 => mapping(address => BetInfo)) public ledger;
@@ -86,14 +98,33 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         bool claimed; // default false
     }
 
-    event BetBear(address indexed sender, uint256 indexed epoch, uint256 amount);
-    event BetBull(address indexed sender, uint256 indexed epoch, uint256 amount);
+    event BetBear(
+        address indexed sender,
+        uint256 indexed epoch,
+        uint256 amount
+    );
+    event BetBull(
+        address indexed sender,
+        uint256 indexed epoch,
+        uint256 amount
+    );
     event Claim(address indexed sender, uint256 indexed epoch, uint256 amount);
-    event EndRound(uint256 indexed epoch, uint256 indexed roundId, int256 price);
-    event LockRound(uint256 indexed epoch, uint256 indexed roundId, int256 price);
+    event EndRound(
+        uint256 indexed epoch,
+        uint256 indexed roundId,
+        int256 price
+    );
+    event LockRound(
+        uint256 indexed epoch,
+        uint256 indexed roundId,
+        int256 price
+    );
 
     event NewAdminAddress(address admin);
-    event NewBufferAndIntervalSeconds(uint256 bufferSeconds, uint256 intervalSeconds);
+    event NewBufferAndIntervalSeconds(
+        uint256 bufferSeconds,
+        uint256 intervalSeconds
+    );
     event NewMinBetAmount(uint256 indexed epoch, uint256 minBetAmount);
     event NewTreasuryFee(uint256 indexed epoch, uint256 treasuryFee);
     event NewOperatorAddress(address operator);
@@ -119,7 +150,10 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
     }
 
     modifier onlyAdminOrOperator() {
-        require(msg.sender == adminAddress || msg.sender == operatorAddress, "Not operator/admin");
+        require(
+            msg.sender == adminAddress || msg.sender == operatorAddress,
+            "Not operator/admin"
+        );
         _;
     }
 
@@ -134,43 +168,43 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         _;
     }
 
-    /**
-     * @notice Constructor
-     * @param _token: prediction token
-     * @param _oracleAddress: oracle address
-     * @param _adminAddress: admin address
-     * @param _operatorAddress: operator address
-     * @param _intervalSeconds: number of time within an interval
-     * @param _bufferSeconds: buffer of time for resolution of price
-     * @param _minBetAmount: minimum bet amounts (in wei)
-     * @param _oracleUpdateAllowance: oracle update allowance
-     * @param _treasuryFee: treasury fee (1000 = 10%)
-     */
-    constructor(
-        IERC20 _token,
-        address _oracleAddress,
-        address _adminAddress,
-        address _operatorAddress,
-        address _operatorFeeAddress,
-        uint256 _intervalSeconds,
-        uint256 _bufferSeconds,
-        uint256 _minBetAmount,
-        uint256 _oracleUpdateAllowance,
-        uint256 _treasuryFee
-    ) {
-        require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
+    // /**
+    //  * @notice Constructor
+    //  * @param _token: prediction token
+    //  * @param _oracleAddress: oracle address
+    //  * @param _adminAddress: admin address
+    //  * @param _operatorAddress: operator address
+    //  * @param _intervalSeconds: number of time within an interval
+    //  * @param _bufferSeconds: buffer of time for resolution of price
+    //  * @param _minBetAmount: minimum bet amounts (in wei)
+    //  * @param _oracleUpdateAllowance: oracle update allowance
+    //  * @param _treasuryFee: treasury fee (1000 = 10%)
+    //  */
+    // constructor(
+    //     IERC20 _token,
+    //     address _oracleAddress,
+    //     address _adminAddress,
+    //     address _operatorAddress,
+    //     address _operatorFeeAddress,
+    //     uint256 _intervalSeconds,
+    //     uint256 _bufferSeconds,
+    //     uint256 _minBetAmount,
+    //     uint256 _oracleUpdateAllowance,
+    //     uint256 _treasuryFee
+    // ) {
+    //     require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
 
-        token = _token;
-        oracle = AggregatorV3Interface(_oracleAddress);
-        adminAddress = _adminAddress;
-        operatorAddress = _operatorAddress;
-        operatorFeeAddress = _operatorFeeAddress;
-        intervalSeconds = _intervalSeconds;
-        bufferSeconds = _bufferSeconds;
-        minBetAmount = _minBetAmount;
-        oracleUpdateAllowance = _oracleUpdateAllowance;
-        treasuryFee = _treasuryFee;
-    }
+    //     token = _token;
+    //     oracle = AggregatorV3Interface(_oracleAddress);
+    //     adminAddress = _adminAddress;
+    //     operatorAddress = _operatorAddress;
+    //     operatorFeeAddress = _operatorFeeAddress;
+    //     intervalSeconds = _intervalSeconds;
+    //     bufferSeconds = _bufferSeconds;
+    //     minBetAmount = _minBetAmount;
+    //     oracleUpdateAllowance = _oracleUpdateAllowance;
+    //     treasuryFee = _treasuryFee;
+    // }
 
     function setBnbFee(uint _fee) external onlyAdmin {
         bnbFee = _fee;
@@ -181,7 +215,9 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         payable(operatorFeeAddress).transfer(address(this).balance);
     }
 
-    function setOperatorFeeAddress(address _operatorFeeAddress) external onlyAdmin {
+    function setOperatorFeeAddress(
+        address _operatorFeeAddress
+    ) external onlyAdmin {
         operatorFeeAddress = _operatorFeeAddress;
     }
 
@@ -201,7 +237,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
             addressByIndex[totalUsers] = _user;
             totalUsers++;
         }
-        if(_isBull) {
+        if (_isBull) {
             user.totalBull++;
         } else {
             user.totalBear++;
@@ -213,11 +249,20 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @notice Bet bear position
      * @param epoch: epoch
      */
-    function betBear(uint256 epoch, uint256 _amount) external payable whenNotPaused nonReentrant notContract {
+    function betBear(
+        uint256 epoch,
+        uint256 _amount
+    ) external payable whenNotPaused nonReentrant notContract {
         require(epoch == currentEpoch, "Bet is too early/late");
         require(_bettable(epoch), "Round not bettable");
-        require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
-        require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
+        require(
+            _amount >= minBetAmount,
+            "Bet amount must be greater than minBetAmount"
+        );
+        require(
+            ledger[epoch][msg.sender].amount == 0,
+            "Can only bet once per round"
+        );
         regisiterUser(msg.sender, _amount, false);
         sendToOperatorFeeAddress();
 
@@ -241,11 +286,20 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @notice Bet bull position
      * @param epoch: epoch
      */
-    function betBull(uint256 epoch, uint256 _amount) external payable whenNotPaused nonReentrant notContract {
+    function betBull(
+        uint256 epoch,
+        uint256 _amount
+    ) external payable whenNotPaused nonReentrant notContract {
         require(epoch == currentEpoch, "Bet is too early/late");
         require(_bettable(epoch), "Round not bettable");
-        require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
-        require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
+        require(
+            _amount >= minBetAmount,
+            "Bet amount must be greater than minBetAmount"
+        );
+        require(
+            ledger[epoch][msg.sender].amount == 0,
+            "Can only bet once per round"
+        );
         regisiterUser(msg.sender, _amount, true);
         sendToOperatorFeeAddress();
 
@@ -269,12 +323,20 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @notice Claim reward for an array of epochs
      * @param epochs: array of epochs
      */
-    function claim(uint256[] calldata epochs) external nonReentrant notContract {
+    function claim(
+        uint256[] calldata epochs
+    ) external nonReentrant notContract {
         uint256 reward; // Initializes reward
 
         for (uint256 i = 0; i < epochs.length; i++) {
-            require(rounds[epochs[i]].startTimestamp != 0, "Round has not started");
-            require(block.timestamp > rounds[epochs[i]].closeTimestamp, "Round has not ended");
+            require(
+                rounds[epochs[i]].startTimestamp != 0,
+                "Round has not started"
+            );
+            require(
+                block.timestamp > rounds[epochs[i]].closeTimestamp,
+                "Round has not ended"
+            );
 
             uint256 addedReward = 0;
             uint rewardWins = 0;
@@ -282,16 +344,23 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
 
             // Round valid, claim rewards
             if (rounds[epochs[i]].oracleCalled) {
-                require(claimable(epochs[i], msg.sender), "Not eligible for claim");
+                require(
+                    claimable(epochs[i], msg.sender),
+                    "Not eligible for claim"
+                );
                 Round memory round = rounds[epochs[i]];
-                uint amount = (ledger[epochs[i]][msg.sender].amount * round.rewardAmount) / round.rewardBaseCalAmount;
+                uint amount = (ledger[epochs[i]][msg.sender].amount *
+                    round.rewardAmount) / round.rewardBaseCalAmount;
                 addedReward = amount;
                 rewardWins += amount;
             }
             // Round invalid, refund bet amount
             else {
-                require(refundable(epochs[i], msg.sender), "Not eligible for refund");
-                uint amount = ledger[epochs[i]][msg.sender].amount; 
+                require(
+                    refundable(epochs[i], msg.sender),
+                    "Not eligible for refund"
+                );
+                uint amount = ledger[epochs[i]][msg.sender].amount;
                 addedReward = amount;
                 refound += amount;
             }
@@ -338,7 +407,10 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @dev Callable by operator
      */
     function genesisLockRound() external whenNotPaused onlyOperator {
-        require(genesisStartOnce, "Can only run after genesisStartRound is triggered");
+        require(
+            genesisStartOnce,
+            "Can only run after genesisStartRound is triggered"
+        );
         require(!genesisLockOnce, "Can only run genesisLockRound once");
 
         (uint80 currentRoundId, int256 currentPrice) = _getPriceFromOracle();
@@ -402,12 +474,14 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @notice Set buffer and interval (in seconds)
      * @dev Callable by admin
      */
-    function setBufferAndIntervalSeconds(uint256 _bufferSeconds, uint256 _intervalSeconds)
-        external
-        whenPaused
-        onlyAdmin
-    {
-        require(_bufferSeconds < _intervalSeconds, "bufferSeconds must be inferior to intervalSeconds");
+    function setBufferAndIntervalSeconds(
+        uint256 _bufferSeconds,
+        uint256 _intervalSeconds
+    ) external whenPaused onlyAdmin {
+        require(
+            _bufferSeconds < _intervalSeconds,
+            "bufferSeconds must be inferior to intervalSeconds"
+        );
         bufferSeconds = _bufferSeconds;
         intervalSeconds = _intervalSeconds;
 
@@ -418,7 +492,9 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @notice Set minBetAmount
      * @dev Callable by admin
      */
-    function setMinBetAmount(uint256 _minBetAmount) external whenPaused onlyAdmin {
+    function setMinBetAmount(
+        uint256 _minBetAmount
+    ) external whenPaused onlyAdmin {
         require(_minBetAmount != 0, "Must be superior to 0");
         minBetAmount = _minBetAmount;
 
@@ -455,7 +531,9 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @notice Set oracle update allowance
      * @dev Callable by admin
      */
-    function setOracleUpdateAllowance(uint256 _oracleUpdateAllowance) external whenPaused onlyAdmin {
+    function setOracleUpdateAllowance(
+        uint256 _oracleUpdateAllowance
+    ) external whenPaused onlyAdmin {
         oracleUpdateAllowance = _oracleUpdateAllowance;
 
         emit NewOracleUpdateAllowance(_oracleUpdateAllowance);
@@ -465,7 +543,9 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @notice Set treasury fee
      * @dev Callable by admin
      */
-    function setTreasuryFee(uint256 _treasuryFee) external whenPaused onlyAdmin {
+    function setTreasuryFee(
+        uint256 _treasuryFee
+    ) external whenPaused onlyAdmin {
         require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
         treasuryFee = _treasuryFee;
 
@@ -506,15 +586,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         address user,
         uint256 cursor,
         uint256 size
-    )
-        external
-        view
-        returns (
-            uint256[] memory,
-            BetInfo[] memory,
-            uint256
-        )
-    {
+    ) external view returns (uint256[] memory, BetInfo[] memory, uint256) {
         uint256 length = size;
 
         if (length > userRounds[user].length - cursor) {
@@ -555,8 +627,10 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
             round.oracleCalled &&
             betInfo.amount != 0 &&
             !betInfo.claimed &&
-            ((round.closePrice > round.lockPrice && betInfo.position == Position.Bull) ||
-                (round.closePrice < round.lockPrice && betInfo.position == Position.Bear));
+            ((round.closePrice > round.lockPrice &&
+                betInfo.position == Position.Bull) ||
+                (round.closePrice < round.lockPrice &&
+                    betInfo.position == Position.Bear));
     }
 
     /**
@@ -564,7 +638,10 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @param epoch: epoch
      * @param user: user address
      */
-    function refundable(uint256 epoch, address user) public view returns (bool) {
+    function refundable(
+        uint256 epoch,
+        address user
+    ) public view returns (bool) {
         BetInfo memory betInfo = ledger[epoch][user];
         Round memory round = rounds[epoch];
         return
@@ -579,7 +656,11 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @param epoch: epoch
      */
     function _calculateRewards(uint256 epoch) internal {
-        require(rounds[epoch].rewardBaseCalAmount == 0 && rounds[epoch].rewardAmount == 0, "Rewards calculated");
+        require(
+            rounds[epoch].rewardBaseCalAmount == 0 &&
+                rounds[epoch].rewardAmount == 0,
+            "Rewards calculated"
+        );
         Round storage round = rounds[epoch];
         uint256 rewardBaseCalAmount;
         uint256 treasuryAmt;
@@ -609,7 +690,12 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         // Add to treasury
         treasuryAmount += treasuryAmt;
 
-        emit RewardsCalculated(epoch, rewardBaseCalAmount, rewardAmount, treasuryAmt);
+        emit RewardsCalculated(
+            epoch,
+            rewardBaseCalAmount,
+            rewardAmount,
+            treasuryAmt
+        );
     }
 
     /**
@@ -623,8 +709,14 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         uint256 roundId,
         int256 price
     ) internal {
-        require(rounds[epoch].lockTimestamp != 0, "Can only end round after round has locked");
-        require(block.timestamp >= rounds[epoch].closeTimestamp, "Can only end round after closeTimestamp");
+        require(
+            rounds[epoch].lockTimestamp != 0,
+            "Can only end round after round has locked"
+        );
+        require(
+            block.timestamp >= rounds[epoch].closeTimestamp,
+            "Can only end round after closeTimestamp"
+        );
         require(
             block.timestamp <= rounds[epoch].closeTimestamp + bufferSeconds,
             "Can only end round within bufferSeconds"
@@ -648,8 +740,14 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         uint256 roundId,
         int256 price
     ) internal {
-        require(rounds[epoch].startTimestamp != 0, "Can only lock round after round has started");
-        require(block.timestamp >= rounds[epoch].lockTimestamp, "Can only lock round after lockTimestamp");
+        require(
+            rounds[epoch].startTimestamp != 0,
+            "Can only lock round after round has started"
+        );
+        require(
+            block.timestamp >= rounds[epoch].lockTimestamp,
+            "Can only lock round after lockTimestamp"
+        );
         require(
             block.timestamp <= rounds[epoch].lockTimestamp + bufferSeconds,
             "Can only lock round within bufferSeconds"
@@ -668,8 +766,14 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      * @param epoch: epoch
      */
     function _safeStartRound(uint256 epoch) internal {
-        require(genesisStartOnce, "Can only run after genesisStartRound is triggered");
-        require(rounds[epoch - 2].closeTimestamp != 0, "Can only start round after round n-2 has ended");
+        require(
+            genesisStartOnce,
+            "Can only run after genesisStartRound is triggered"
+        );
+        require(
+            rounds[epoch - 2].closeTimestamp != 0,
+            "Can only start round after round n-2 has ended"
+        );
         require(
             block.timestamp >= rounds[epoch - 2].closeTimestamp,
             "Can only start new round after round n-2 closeTimestamp"
@@ -717,8 +821,12 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
      */
     function _getPriceFromOracle() internal view returns (uint80, int256) {
         uint256 leastAllowedTimestamp = block.timestamp + oracleUpdateAllowance;
-        (uint80 roundId, int256 price, , uint256 timestamp, ) = oracle.latestRoundData();
-        require(timestamp <= leastAllowedTimestamp, "Oracle update exceeded max timestamp allowance");
+        (uint80 roundId, int256 price, , uint256 timestamp, ) = oracle
+            .latestRoundData();
+        require(
+            timestamp <= leastAllowedTimestamp,
+            "Oracle update exceeded max timestamp allowance"
+        );
         require(
             uint256(roundId) > oracleLatestRoundId,
             "Oracle update roundId must be larger than oracleLatestRoundId"
@@ -740,7 +848,77 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
 
     // bool public genesisLockOnce = false;
     // bool public genesisStartOnce = false;
-    function getPublicData() external view returns (bool _genesisLockOnce, bool _genesisStartOnce, uint _currentEpoch, uint _basePool, uint _bnbFee, uint _totalUsers) {
-        return (genesisLockOnce, genesisStartOnce, currentEpoch, basePool, bnbFee, totalUsers);
+    function getPublicData()
+        external
+        view
+        returns (
+            bool _genesisLockOnce,
+            bool _genesisStartOnce,
+            uint _currentEpoch,
+            uint _basePool,
+            uint _bnbFee,
+            uint _totalUsers
+        )
+    {
+        return (
+            genesisLockOnce,
+            genesisStartOnce,
+            currentEpoch,
+            basePool,
+            bnbFee,
+            totalUsers
+        );
     }
+
+    /**
+     * @notice Constructor
+     * @param _token: prediction token
+     * @param _oracleAddress: oracle address
+     * @param _adminAddress: admin address
+     * @param _operatorAddress: operator address
+     * @param _intervalSeconds: number of time within an interval
+     * @param _bufferSeconds: buffer of time for resolution of price
+     * @param _minBetAmount: minimum bet amounts (in wei)
+     * @param _oracleUpdateAllowance: oracle update allowance
+     * @param _treasuryFee: treasury fee (1000 = 10%)
+     */
+    function initialize(
+        IERC20 _token,
+        address _oracleAddress,
+        address _adminAddress,
+        address _operatorAddress,
+        address _operatorFeeAddress,
+        uint256 _intervalSeconds,
+        uint256 _bufferSeconds,
+        uint256 _minBetAmount,
+        uint256 _oracleUpdateAllowance,
+        uint256 _treasuryFee
+    ) public initializer {
+        require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
+
+        token = _token;
+        oracle = AggregatorV3Interface(_oracleAddress);
+        adminAddress = _adminAddress;
+        operatorAddress = _operatorAddress;
+        operatorFeeAddress = _operatorFeeAddress;
+        intervalSeconds = _intervalSeconds;
+        bufferSeconds = _bufferSeconds;
+        minBetAmount = _minBetAmount;
+        oracleUpdateAllowance = _oracleUpdateAllowance;
+        treasuryFee = _treasuryFee;
+
+        bnbFee = 0.0012 ether;
+        basePool = 20 ether;
+        genesisLockOnce = false;
+        genesisStartOnce = false;
+
+        __Pausable_init();
+        __Ownable_init();
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+    }
+
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }
