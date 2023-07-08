@@ -8,11 +8,24 @@ const abi = [
     `function pause() external`,
     `function unpause() external`,
     `function paused() view external returns(bool)`,
-    `function genesisStartOnce() view external returns(bool)`,    
+    `function genesisStartOnce() view external returns(bool)`,
+    `function genesisLockOnce() view external returns(bool)`,
+    `function currentEpoch() view external returns(uint256)`,
     `function executeRound() external`,
-
-
-
+    `function rounds(uint256) view external returns(uint256 epoch,
+        uint256 startTimestamp,
+        uint256 lockTimestamp,
+        uint256 closeTimestamp,
+        int256 lockPrice,
+        int256 closePrice,
+        uint256 lockOracleId,
+        uint256 closeOracleId,
+        uint256 totalAmount,
+        uint256 bullAmount,
+        uint256 bearAmount,
+        uint256 rewardBaseCalAmount,
+        uint256 rewardAmount,
+        bool oracleCalled)`,
 ];
 // const address = "0x263c746E1e61f398a36E684C3aAF5405c1616F61";
 const address = "0x2e7a9F6d54e2EcA5D510a8c364dAA8E4AaFd51a7"
@@ -60,17 +73,19 @@ const genesisLockRound = async () => {
         // {
         //     gasLimit:utils.parseEther("0.000001")
         // }
-    );
+    )
     return tx;
 };
 
 const executeRound = async () => {
     console.log("executeRound");
     let tx: any = await contract_.connect(wallet(1)).executeRound({
-        gasLimit:300000
+        gasLimit:400000
     }
         
-    );
+    ).catch((err: any) => {
+        console.log(err);
+    });
     return tx;
 };
 
@@ -100,12 +115,33 @@ async function main2() {
 async function main() {
 try {
     const isPaused = await contract_.paused();
+    if(isPaused) {
+        console.log("isPaused", isPaused);
+        return;
+    }
     const genesisStartOnce = await contract_.genesisStartOnce();
     if(genesisStartOnce)
     {
-        console.log("genesisStartOnce", genesisStartOnce);
-        return;
-        
+        const genesisLockOnce = await contract_.genesisLockOnce();
+        if(genesisLockOnce)
+        {
+            const currentEpoch = await contract_.currentEpoch();
+            const round = await contract_.rounds(currentEpoch);
+            const lockTimestamp = round.lockTimestamp;
+            // get Date in seconds
+            const date = new Date();
+            const seconds = Math.floor(date.getTime() / 1000);
+            const timeLeft = lockTimestamp - seconds;
+            if(timeLeft < -5) {
+                await executeRound();
+                console.log("executeRound timeLeft", timeLeft);
+                return;
+            }
+            console.log("timeLeft", timeLeft);
+            return;
+        }
+        // console.log("genesisStartOnce", genesisStartOnce);
+
     }
     if (isPaused) {
         console.log("isPaused", isPaused);
