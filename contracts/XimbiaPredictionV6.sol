@@ -60,9 +60,9 @@ contract XimbiaPredictionV6 is
     uint256 public oracleUpdateAllowance; // seconds
 
     uint256 public constant MAX_TREASURY_FEE = 1000; // 10%
-    uint public bnbFee;
-    uint public basePool;
-    uint public totalUsers;
+    uint internal bnbFee;
+    uint internal basePool;
+    uint internal totalUsers;
 
     mapping(uint256 => mapping(address => BetInfo)) public ledger;
     mapping(uint256 => Round) public rounds;
