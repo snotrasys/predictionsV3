@@ -14,6 +14,16 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
  */
 contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    struct User {
+        address user;
+        uint id;
+        uint totalBull;
+        uint totalBear;
+        uint totalWin;
+        uint totalBetAmount;
+        uint totalReWards;
+        uint totalReFound;
+    }
 
     IERC20 public immutable token; // Prediction token
 
@@ -41,10 +51,13 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
     uint256 public constant MAX_TREASURY_FEE = 1000; // 10%
     uint public bnbFee = 0.0012 ether;
     uint public basePool = 20 ether;
+    uint public totalUsers;
 
     mapping(uint256 => mapping(address => BetInfo)) public ledger;
     mapping(uint256 => Round) public rounds;
     mapping(address => uint256[]) public userRounds;
+    mapping(address => User) public users;
+    mapping(uint => address) public addressByIndex;
 
     enum Position {
         Bull,
@@ -181,6 +194,22 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         token.safeTransfer(msg.sender, _amount);
     }
 
+    function regisiterUser(address _user, uint _amount, bool _isBull) internal {
+        User storage user = users[_user];
+        if (user.user == address(0)) {
+            user.user = _user;
+            user.id = totalUsers;
+            addressByIndex[totalUsers] = _user;
+            totalUsers++;
+        }
+        if(_isBull) {
+            user.totalBull++;
+        } else {
+            user.totalBear++;
+        }
+        user.totalBetAmount += _amount;
+    }
+
     /**
      * @notice Bet bear position
      * @param epoch: epoch
@@ -190,6 +219,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         require(_bettable(epoch), "Round not bettable");
         require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
+        regisiterUser(msg.sender, _amount, false);
         sendToOperatorFeeAddress();
 
         token.safeTransferFrom(msg.sender, address(this), _amount);
@@ -217,6 +247,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         require(_bettable(epoch), "Round not bettable");
         require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
+        regisiterUser(msg.sender, _amount, true);
         sendToOperatorFeeAddress();
 
         token.safeTransferFrom(msg.sender, address(this), _amount);
@@ -247,12 +278,15 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
             require(block.timestamp > rounds[epochs[i]].closeTimestamp, "Round has not ended");
 
             uint256 addedReward = 0;
+            uint rewardWins = 0;
 
             // Round valid, claim rewards
             if (rounds[epochs[i]].oracleCalled) {
                 require(claimable(epochs[i], msg.sender), "Not eligible for claim");
                 Round memory round = rounds[epochs[i]];
-                addedReward = (ledger[epochs[i]][msg.sender].amount * round.rewardAmount) / round.rewardBaseCalAmount;
+                uint amount = (ledger[epochs[i]][msg.sender].amount * round.rewardAmount) / round.rewardBaseCalAmount;
+                addedReward = amount;
+                rewardWins += amount;
             }
             // Round invalid, refund bet amount
             else {
@@ -698,5 +732,11 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
             size := extcodesize(account)
         }
         return size > 0;
+    }
+
+    // bool public genesisLockOnce = false;
+    // bool public genesisStartOnce = false;
+    function getPublicData() external view returns (bool _genesisLockOnce, bool _genesisStartOnce, uint _currentEpoch, uint _basePool, uint _bnbFee, uint _totalUsers) {
+        return (genesisLockOnce, genesisStartOnce, currentEpoch, basePool, bnbFee, totalUsers);
     }
 }
