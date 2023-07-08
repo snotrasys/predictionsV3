@@ -12,7 +12,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 /**
  * @title XimbiaPredictionV5
  */
-contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
+contract XimbiaPredictionV6 is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     struct User {
         address user;

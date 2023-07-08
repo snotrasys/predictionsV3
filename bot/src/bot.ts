@@ -15,7 +15,7 @@ const abi = [
 
 ];
 // const address = "0x263c746E1e61f398a36E684C3aAF5405c1616F61";
-const address = "0x2e7a9F6d54e2EcA5D510a8c364dAA8E4AaFd51a7"
+const address = "0x58394658D51EA53146EC612089c2276bffb344F0"
 const provider = new providers.JsonRpcProvider(
     // "https://bsc-testnet.publicnode.com"
     "https://rpc.bsc.magic-api.net"
