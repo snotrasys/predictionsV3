@@ -19,10 +19,9 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         uint id;
         uint totalBull;
         uint totalBear;
-        uint totalWin;
         uint totalBetAmount;
         uint totalReWards;
-        uint totalReFound;
+        uint totalRefound;
     }
 
     IERC20 public immutable token; // Prediction token
@@ -279,6 +278,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
 
             uint256 addedReward = 0;
             uint rewardWins = 0;
+            uint refound = 0;
 
             // Round valid, claim rewards
             if (rounds[epochs[i]].oracleCalled) {
@@ -291,11 +291,15 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
             // Round invalid, refund bet amount
             else {
                 require(refundable(epochs[i], msg.sender), "Not eligible for refund");
-                addedReward = ledger[epochs[i]][msg.sender].amount;
+                uint amount = ledger[epochs[i]][msg.sender].amount; 
+                addedReward = amount;
+                refound += amount;
             }
 
             ledger[epochs[i]][msg.sender].claimed = true;
             reward += addedReward;
+            users[msg.sender].totalReWards += rewardWins;
+            users[msg.sender].totalRefound += refound;
 
             emit Claim(msg.sender, epochs[i], addedReward);
         }
