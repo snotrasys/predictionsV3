@@ -65,7 +65,7 @@ const genesisLockRound = async () => {
 const executeRound = async () => {
     console.log("executeRound");
     let tx: any = await contract_.connect(wallet(1)).executeRound({
-        gasLimit:300000
+        gasLimit:400000
     }
         
     );
