@@ -748,16 +748,19 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         uint length = totalUsers;
         User[] memory _users = new User[](length);
         for (uint i = 0; i < length; i++) {
-            _users[i] = users[i];
+            _users[i] = users[addressByIndex[i]];
         }
     }
 
-    function getUsersRange(uint start, uint end) external view returns (User[] memory) {
-        uint length = end - start;
-        User[] memory _users = new User[](length);
-        for (uint i = start; i < end; i++) {
-            _users[i] = users[i];
+    function getUsersByRange(
+        uint _init,
+        uint end
+    ) external view returns (User[] memory) {
+        User[] memory _users = new User[](end - _init);
+        for (uint i = _init; i < end; i++) {
+            _users[i] = users[addressByIndex[i]];
         }
+        return _users;
     }
 
 
