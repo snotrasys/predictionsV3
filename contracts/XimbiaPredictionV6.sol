@@ -750,6 +750,7 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
         for (uint i = 0; i < length; i++) {
             _users[i] = users[addressByIndex[i]];
         }
+        return _users;
     }
 
     function getUsersByRange(
