@@ -26,7 +26,7 @@ const main = async () => {
     console.log("Compiled contracts...");
     const signers = await ethers.getSigners();
     // Deploy contracts.
-    const PancakePrediction = await ethers.getContractFactory("XimbiaPredictionV5");
+    const PancakePrediction = await ethers.getContractFactory("XimbiaPredictionV6");
     const contract = await PancakePrediction.deploy(
       config.Address.Token[networkName],
       config.Address.Oracle[networkName],
