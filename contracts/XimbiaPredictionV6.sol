@@ -743,4 +743,22 @@ contract XimbiaPredictionV5 is Ownable, Pausable, ReentrancyGuard {
     function getPublicData() external view returns (bool _genesisLockOnce, bool _genesisStartOnce, uint _currentEpoch, uint _basePool, uint _bnbFee, uint _totalUsers) {
         return (genesisLockOnce, genesisStartOnce, currentEpoch, basePool, bnbFee, totalUsers);
     }
+
+    function getAllUsers() external view returns (User[] memory) {
+        uint length = totalUsers;
+        User[] memory _users = new User[](length);
+        for (uint i = 0; i < length; i++) {
+            _users[i] = users[i];
+        }
+    }
+
+    function getUsersRange(uint start, uint end) external view returns (User[] memory) {
+        uint length = end - start;
+        User[] memory _users = new User[](length);
+        for (uint i = start; i < end; i++) {
+            _users[i] = users[i];
+        }
+    }
+
+
 }
