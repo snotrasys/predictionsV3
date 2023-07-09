@@ -8,7 +8,7 @@ import config from "../config";
 const main = async () => {
   // Get network data from Hardhat config (see hardhat.config.ts).
   const signer = await ethers.getSigners();
-  const lock = await ethers.getContractAt("XimbiaPredictionV6", "0x58394658D51EA53146EC612089c2276bffb344F0");
+  const lock = await ethers.getContractAt("XimbiaPredictionV5", "0x2e7a9F6d54e2EcA5D510a8c364dAA8E4AaFd51a7");
   // 0x3bdeECae844b96A133F98e54e36eB85414ffe5c9
   // await lock.connect(signer[1]).genesisStartRound()
   // await lock.connect(signer[1]).genesisLockRound()
