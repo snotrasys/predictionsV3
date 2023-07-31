@@ -10,7 +10,9 @@ const main = async () => {
   const signer = await ethers.getSigners();
    
 
-  const lock = await ethers.getContractAt("XimbiaPredictionV5", '0xbe2fa41f1556f3176d3B9d2DF10c04bE5c10F4fF');
+  // const lock = await ethers.getContractAt("XimbiaPredictionV5", '0xbe2fa41f1556f3176d3B9d2DF10c04bE5c10F4fF'); //aidos biotic
+  const lock = await ethers.getContractAt("XimbiaPredictionV5", '0x1556A407730A41cbe439950b4D8428FAFbF179CB');
+  
   // 0x3bdeECae844b96A133F98e54e36eB85414ffe5c9
   // await lock.connect(signer[1]).genesisStartRound()
   // await lock.connect(signer[1]).genesisLockRound()
